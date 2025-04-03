@@ -44,6 +44,11 @@ ln -snf ${FIXrrfs}/bumploc/${MESH_NAME}_L${nlevel}_${NTASKS}_401km11levels bumpl
 ln -snf ${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/stddev.nc static_bec/stddev.nc
 ln -snf ${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/nicas_${NTASKS} static_bec/nicas
 ln -snf ${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/vbal_${NTASKS} static_bec/vbal
+
+#for satllite radiance
+#ln -snf ${FIXrrfs}/crtm/2.4.0 crtm
+ln -snf ${FIXrrfs}/crtm/2.4.1 crtm
+ln -snf ${FIXrrfs}/satbias_init/* obs/. 
 #
 # copy observations files
 #
@@ -104,6 +109,7 @@ ${cpreq} ${PARMrrfs}/streams.atmosphere.jedivar streams.atmosphere
 analysisDate=""${CDATE:0:4}-${CDATE:4:2}-${CDATE:6:2}T${CDATE:8:2}:00:00Z""
 CDATEm2=$($NDATE -2 ${CDATE})
 beginDate=""${CDATEm2:0:4}-${CDATEm2:4:2}-${CDATEm2:6:2}T${CDATEm2:8:2}:00:00Z""
+YAML_GEN_METHOD=2
 #
 # generate jedivar.yaml based on how YAML_GEN_METHOD is set
 case ${YAML_GEN_METHOD:-1} in

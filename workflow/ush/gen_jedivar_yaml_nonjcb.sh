@@ -71,6 +71,8 @@ obtype_configs=(
     #"sfcshp_winds_282.yaml"
     #"sfcshp_winds_284.yaml"
     #"vadwnd_winds_224.yaml"
+    "abi_g16.yaml"
+    "abi_g18.yaml"
 )
 
 rm -f jedivar.yaml  # Remove any existing file
