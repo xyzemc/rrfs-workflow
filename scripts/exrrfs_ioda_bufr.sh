@@ -13,6 +13,9 @@ cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.satwnd.tm00.bufr_d" satwndbufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.gsrcsr.tm00.bufr_d" abibufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.atms.tm00.bufr_d" atmsbufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.crisf4.tm00.bufr_d" crisfsbufr
+cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.esamua.tm00.bufr_d" amsuabufrears
+cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.1bamua.tm00.bufr_d" amsuabufr
+
 ${cpreq} "${EXECrrfs}"/bufr2ioda.x .
 ${cpreq} "${EXECrrfs}"/bufr2netcdf.x .
 
@@ -58,19 +61,60 @@ for yaml in "${yaml_list[@]}"; do
  # some data may not be available at all cycles, so we don't check whether bufr2ioda.x runs successfully
 done
 
+# pyioda libraries
+PYIODALIB=$(echo "$HOMErdasapp"/build/lib/python3.*)
+WXFLOWLIB=${USHrrfs}/wxflow/src
+export PYTHONPATH="${WXFLOWLIB}:${PYIODALIB}:${PYTHONPATH}"
+
 # --------------------------------------------------
 # run  bufr2ioda tool for atms bufr obs
 # --------------------------------------------------
 ${cpreq} "${FIXrrfs}/jedi/atms_beamwidth.txt" .
 ${cpreq} "${PARMrrfs}/bufr_atms_mapping.yaml" .
 input_file="atmsbufr"
-output_file="ioda.atms_{splits/satId}.nc"
+output_file="ioda_atms_{splits/satId}.nc"
 yaml="bufr_atms_mapping.yaml"
 if [[ -f "$input_file" ]]; then
   ./bufr2netcdf.x "$input_file" "$yaml" "$output_file"
 else
   echo "Input file $input_file does not exist."
 fi
+
+
+# --------------------------------------------------
+# run  bufr2ioda tool for amsua bufr obs
+# --------------------------------------------------
+#module purge
+#echo "${HOMErdasapp}" ${HOMErdasapp}
+#source "${HOMErdasapp}/ush/load_rdas.sh"
+#module list
+
+# Set bufr-query python library
+#export LD_LIBRARY_PATH="${HOMErdasapp}/build/lib:${LD_LIBRARY_PATH}"
+#export PYTHONPATH="${PYTHONPATH}:${HOMErdasapp}/build/lib/python3.10/site-packages"
+#python3 -c "import bufr"
+
+## Set ioda python library
+#export PYTHONPATH="${PYTHONPATH}:${HOMErdasapp}/build/lib/python3.10"
+
+## Set wxfloww
+#export PYTHONPATH="${PYTHONPATH}:${RDASApp_dir}/sorc/wxflow/src"
+
+
+input_es=./amsuabufrears
+input_1b=./amsuabufr
+output_file=ioda_amsua_{splits/satId}.nc
+#yaml_1b=${PARMrrfs}/bufr_1bamua_mapping.yaml
+#yaml_es=${PARMrrfs}/bufr_esamua_mapping.yaml
+${cpreq} "${PARMrrfs}"/bufr_1bamua_mapping.yaml .
+${cpreq} "${PARMrrfs}"/bufr_esamua_mapping.yaml .
+yaml_1b=./bufr_1bamua_mapping.yaml
+yaml_es=./bufr_esamua_mapping.yaml
+cp -r "${FIXrrfs}"/jedi/aux .
+${cpreq} "${USHrrfs}"/bufr2ioda_amsua.py .
+python bufr2ioda_amsua.py $input_es $input_1b  $yaml_1b $yaml_es $output_file
+
+#---------------------------------------------------
 # run python bufr2ioda tool for ZTD and AMV bufr obs
 # --------------------------------------------------
 HOMErdasapp=${HOMErrfs}/sorc/RDASApp/
@@ -83,10 +127,6 @@ ${cpreq} "${HOMErdasapp}"/rrfs-test/IODA/python/bufr2ioda_gsrcsr.json .
 ${cpreq} "${HOMErdasapp}"/rrfs-test/IODA/python/bufr2ioda_gsrcsr.py .
 ${cpreq} "${USHrrfs}"/run_bufr2ioda_gsrcsr.sh .
 
-# pyioda libraries
-PYIODALIB=$(echo "$HOMErdasapp"/build/lib/python3.*)
-WXFLOWLIB=${USHrrfs}/wxflow/src
-export PYTHONPATH="${WXFLOWLIB}:${PYIODALIB}:${PYTHONPATH}"
 
 # generate a JSON w CDATE from the template and convert to IODA
 ${cpreq} "${HOMErdasapp}"/rrfs-test/IODA/python/gen_bufr2ioda_json.py .
@@ -107,6 +147,8 @@ ln -sf abibufr "rap.t${cyc}z.gsrcsr.tm00.bufr_d"
 cp "rap.t${cyc}z.abi_g16.tm00.nc" "ioda_abi_g16.nc"
 cp "rap.t${cyc}z.abi_g18.tm00.nc" "ioda_abi_g18.nc"
 
+
+
 # run offline IODA tools
 ${cpreq} "${USHrrfs}"/offline_domain_check.py .
 ${cpreq} "${USHrrfs}"/offline_domain_check_satrad.py .
@@ -121,7 +163,7 @@ for ioda_file in ioda*nc; do
     ./offline_domain_check_satrad.py -o "${ioda_file}" -g "${grid_file}" -f -s 0.005
     base_name=$(basename "$ioda_file" .nc)
     mv  "${base_name}_dc.nc" "${base_name}.nc"
-  elif [[ "${ioda_file}" == *atms* || "${ioda_file}" == *cris* ]]; then
+  elif [[ "${ioda_file}" == *atms* || "${ioda_file}" == *cris* || "${ioda_file}" == *amsua* ]]; then
     echo " ${ioda_file} ioda file detected: temporarily skipping offline domain check"
   else
     ./offline_domain_check.py -o "${ioda_file}" -g "${grid_file}" -s 0.005
