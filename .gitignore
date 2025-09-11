@@ -1,4 +1,5 @@
 exec/
+tmp/
 fix/.agent
 fix/tmp
 fix/INIT_DONE
@@ -10,3 +11,4 @@ workflow/myrrfsexps
 workflow/convinfo*
 workflow/satinfo*
 workflow/ush/output.linter_shellcheck
+ush/test_yaml_finalize

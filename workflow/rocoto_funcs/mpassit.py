@@ -5,7 +5,7 @@ from rocoto_funcs.base import xml_task, get_cascade_env
 # begin of mpassit --------------------------------------------------------
 
 
-def mpassit(xmlFile, expdir, do_ensemble=False):
+def mpassit(xmlFile, expdir, do_ensemble=False, do_ensmean_post=False):
     meta_id = 'mpassit'
     cycledefs = 'prod'
     #
@@ -23,7 +23,12 @@ def mpassit(xmlFile, expdir, do_ensemble=False):
         'HISTORY_INTERVAL': f'{history_interval}',
         'FCST_LEN_HRS_CYCLES': f'{fcst_len_hrs_cycles}',
         'GROUP_TOTAL_NUM': f'{mpassit_group_total_num}',
-        'GROUP_INDEX': f'#group_index#'
+        'GROUP_INDEX': f'#group_index#',
+        'MPASSIT_NX': os.getenv('MPASSIT_NX', 'MPASSIT_NX_not_defined'),
+        'MPASSIT_NY': os.getenv('MPASSIT_NY', 'MPASSIT_NY_not_defined'),
+        'MPASSIT_DX': os.getenv('MPASSIT_DX', 'MPASSIT_DX_not_defined'),
+        'MPASSIT_REF_LAT': os.getenv('MPASSIT_REF_LAT', 'MPASSIT_REF_LAT_not_defined'),
+        'MPASSIT_REF_LON': os.getenv('MPASSIT_REF_LON', 'MPASSIT_REF_LON_not_defined'),
     }
 
     if not do_ensemble:
@@ -37,6 +42,7 @@ def mpassit(xmlFile, expdir, do_ensemble=False):
         task_id = f'{meta_id}_g#group_index#'
 
         ensindexstr = ""
+        memdir = ""
     else:
         # metatask (nested or not)
         fhr = os.getenv('ENS_FCST_LENGTH', '3')
@@ -44,17 +50,32 @@ def mpassit(xmlFile, expdir, do_ensemble=False):
             print(f'FCST_LENGTH>=100 not supported: {fhr}')
             exit()
         ens_size = int(os.getenv('ENS_SIZE', '2'))
-        ens_indices = ''.join(f'{i:03d} ' for i in range(1, int(ens_size) + 1)).strip()
-        meta_bgn = f'''
+        if not do_ensmean_post:
+            ens_indices = ''.join(f'{i:03d} ' for i in range(1, int(ens_size) + 1)).strip()
+            meta_bgn = f'''
 <metatask name="{meta_id}">
 <var name="ens_index">{ens_indices}</var>
 <metatask name="{meta_id}_m#ens_index#">
 <var name="group_index">{group_indices}</var>
 <var name="fhr2">{fhr2}</var>'''
-        meta_end = f'</metatask>\n</metatask>\n'
-        task_id = f'{meta_id}_m#ens_index#_g#group_index#'
-        dcTaskEnv['ENS_INDEX'] = "#ens_index#"
-        ensindexstr = "_m#ens_index#"
+            meta_end = f'</metatask>\n</metatask>\n'
+            task_id = f'{meta_id}_m#ens_index#_g#group_index#'
+            dcTaskEnv['ENS_INDEX'] = "#ens_index#"
+            ensindexstr = "_m#ens_index#"
+            memdir = "/mem#ens_index#"
+        else:
+            # metatask (nested or not)
+            meta_id = "mpassit_ensmean"
+            meta_bgn = f'''
+<metatask name="{meta_id}">
+<var name="group_index">{group_indices}</var>
+<var name="fhr2">{fhr2}</var>
+'''
+            meta_end = f'</metatask>\n'
+            task_id = f'{meta_id}_g#group_index#'
+            memdir = "/ensmean"
+
+    dcTaskEnv['MEMDIR'] = f'{memdir}'
 
     # dependencies
     timedep = ""
@@ -63,10 +84,15 @@ def mpassit(xmlFile, expdir, do_ensemble=False):
         starttime = get_cascade_env(f"STARTTIME_{meta_id}".upper())
         timedep = f'\n    <timedep><cyclestr offset="{starttime}">@Y@m@d@H@M00</cyclestr></timedep>'
     #
+    if not do_ensmean_post:
+        taskdep = f'\n   <taskdep task="save_fcst{ensindexstr}"/>'
+    else:
+        taskdep = f'\n   <metataskdep metatask="ensmean"/>'
+
     dependencies = f'''
   <dependency>
   <and>{timedep}
-    <taskdep task="save_fcst{ensindexstr}"/>
+  {taskdep}
   </and>
   </dependency>'''
     #

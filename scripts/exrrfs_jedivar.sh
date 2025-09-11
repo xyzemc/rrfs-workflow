@@ -20,7 +20,7 @@ if [[ -r "${UMBRELLA_PREP_IC_DATA}/init.nc" ]]; then
 else
   start_type='warm'
   do_DAcycling='true'
-  initial_file=${UMBRELLA_PREP_IC_DATA}/mpasin.nc
+  initial_file=${UMBRELLA_PREP_IC_DATA}/mpasout.nc
 fi
 #
 # link fix files from physics, meshes, graphinfo, stream list, and jedi
@@ -40,14 +40,29 @@ ${cpreq} "${FIXrrfs}"/jedi/geovars.yaml .
 # create data directory
 #
 mkdir -p data; cd data || exit 1
-mkdir -p obs ens static_bec satbias_in satbias_out
+mkdir -p obs ens satbias_in satbias_out
 #
 #  bump files and static BEC files
 #
 ln -snf "${FIXrrfs}/bumploc/${MESH_NAME}_L${nlevel}_${NTASKS}_401km11levels"  bumploc
-ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/stddev.nc"  static_bec/stddev.nc
-ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/nicas_${NTASKS}"  static_bec/nicas
-ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/vbal_${NTASKS}"  static_bec/vbal
+
+if [[ ${STATIC_BEC_MODEL} == "GSIBEC" ]]; then
+  # gsibec
+  ln -snf "${FIXrrfs}/gsi_bec/berror_stats" "${DATA}"/berror_stats
+  ln -snf "${FIXrrfs}/gsi_bec/gsiparm_regional.anl.${MESH_NAME}" "${DATA}"/gsiparm_regional.anl
+  ln -snf "${FIXrrfs}/gsi_bec/mpas_pave_L${nlevel}.txt" "${DATA}"/mpas_pave.txt
+  ln -snf "${FIXrrfs}/gsi_bec/fv3_grid_spec.${MESH_NAME}" "${DATA}"/fv3_grid_spec
+  ln -snf "${FIXrrfs}/gsi_bec/fv3_akbk" "${DATA}"/fv3_akbk
+  ${cpreq} "${FIXrrfs}/gsi_bec/coupler.res" "${DATA}"/coupler.res
+  sed -i -e "s/yyyy    mm    dd    hh/${CDATE:0:4}    ${CDATE:4:2}    ${CDATE:6:2}    ${CDATE:8:2}/"  "${DATA}"/coupler.res
+else
+  # bump bec
+  mkdir -p static_bec
+  ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/stddev.nc"  static_bec/stddev.nc
+  ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/nicas_${NTASKS}"  static_bec/nicas
+  ln -snf "${FIXrrfs}/static_bec/${MESH_NAME}_L${nlevel}/vbal_${NTASKS}"  static_bec/vbal
+  ${cpreq}  "${EXPDIR}/config/bec_bump.yaml" "${DATA}"/bec_bump.yaml
+fi
 
 #for satllite radiance
 ln -snf "${FIXrrfs}"/crtm/2.4.0_jedi crtm
@@ -74,33 +89,30 @@ physics_suite=${PHYSICS_SUITE:-'mesoscale_reference'}
 jedi_da="true" #true
 pio_num_iotasks=${NODES}
 pio_stride=${PPN}
-if [[ "${MESH_NAME}" == "conus12km" ]]; then
-  dt=60
-  substeps=2
-  radt=30
-elif [[ "${MESH_NAME}" == "conus3km" ]]; then
-  dt=20
-  substeps=4
-  radt=15
-elif [[ "${MESH_NAME}" == "south3.5km" ]]; then
-  dt=25
-  substeps=4
-  radt=15
-else
-  echo "Unknown MESH_NAME, exit!"
-  err_exit
-fi
+
+# We set dt, substeps, radt values to avoid errors in reading namelist.atmosphere
+# but they will NOT be used since no model integration in DA steps
+dt=60
+substeps=2
+radt=30
+
 file_content=$(< "${PARMrrfs}/${physics_suite}/namelist.atmosphere") # read in all content
 eval "echo \"${file_content}\"" > namelist.atmosphere
 ${cpreq} "${PARMrrfs}"/streams.atmosphere.jedivar streams.atmosphere
-analysisDate=""${CDATE:0:4}-${CDATE:4:2}-${CDATE:6:2}T${CDATE:8:2}:00:00Z""
+export analysisDate=""${CDATE:0:4}-${CDATE:4:2}-${CDATE:6:2}T${CDATE:8:2}:00:00Z""
 CDATEm2=$(${NDATE} -2 "${CDATE}")
-beginDate=""${CDATEm2:0:4}-${CDATEm2:4:2}-${CDATEm2:6:2}T${CDATEm2:8:2}:00:00Z""
+export beginDate=""${CDATEm2:0:4}-${CDATEm2:4:2}-${CDATEm2:6:2}T${CDATEm2:8:2}:00:00Z""
 #
 # generate jedivar.yaml based on how YAML_GEN_METHOD is set
 case ${YAML_GEN_METHOD:-1} in
   1) # from ${PARMrrfs}
-    source "${USHrrfs}"/yaml_from_parm.sh "jedivar"
+    cp "${EXPDIR}/config/jedivar.yaml" jedivar.yaml
+    cp "${EXPDIR}/config/convinfo" .
+    cp "${EXPDIR}/config/satinfo" .
+    cp "${USHrrfs}/hifiyaml4rrfs.py" .
+    cp "${USHrrfs}/yamltools4rrfs.py" .
+    cp "${USHrrfs}/yaml_finalize" .
+    ./yaml_finalize jedivar.yaml
     ;;
   2) # update placeholders in static yaml from gen_jedivar_yaml_nonjcb.sh
     source "${USHrrfs}"/yaml_replace_placeholders.sh
@@ -137,7 +149,7 @@ if [[ ${start_type} == "warm" ]] || [[ ${start_type} == "cold" && ${COLDSTART_CY
     mv tmp.nc "$(readlink -f init.nc)"
     mv ana.nc ..
   else
-    cp "${DATA}"/mpasin.nc "${COMOUT}/jedivar/${WGF}/mpasout.${timestr}.nc"
+    cp "${DATA}"/mpasout.nc "${COMOUT}/jedivar/${WGF}/mpasout.${timestr}.nc"
   fi
   #
   # the input/output file are linked from the umbrella directory, so no need to copy
