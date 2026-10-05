@@ -456,6 +456,7 @@ cp $COMOUT/ioda_*.nc data/obs/.
 mkdir -p data/satbias_in  data/satbias_out
 
 cp "${FIX_JEDI}/"satbias_init/*.tlapse.txt data/satbias_in/.
+cp "${FIX_JEDI}/"satbias_mhs/*.tlapse.txt data/satbias_in/.
 
 if [[ ${DO_RADDA} == "TRUE" ]]; then # copy bias from previous cycle
   satcounter=1
@@ -505,6 +506,7 @@ if [[ ${DO_RADDA} == "TRUE" ]]; then # copy bias from previous cycle
   if [ $satcounter -eq $maxcounter ]; then
     echo "Not found satbias from previous 10 days, copy it from satbias_init"
     cp "${FIX_JEDI}/"satbias_init/*.nc data/satbias_in/.
+    cp "${FIX_JEDI}/"satbias_mhs/*.nc data/satbias_in/.
   fi
 fi
 #

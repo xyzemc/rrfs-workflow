@@ -165,6 +165,7 @@ cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.crisf4.tm00.bufr_d" crisfsbufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.1bamua.tm00.bufr_d" 1bamsuabufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.esamua.tm00.bufr_d" esamsuabufr
 cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.nexrad.tm00.bufr_d" l2rwbufr
+cp "${OBSPATH}/${CDATE}.rap.t${cyc}z.1bmhs.tm00.bufr_d" 1bmhsbufr
 #
 #-----------------------------------------------------------------------
 #
@@ -251,6 +252,7 @@ cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/bufr2ioda_adpupa_prepbufr.py .
 cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/bufr2ioda_gsrcsr.json .
 cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/bufr2ioda_gsrcsr.py .
 cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/bufr2ioda_amsua.py .
+cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/bufr2ioda_mhs.py .
 
 # generate a JSON w CDATE from the template and convert to IODA
 cp "${RDASAPP_DIR}"/rrfs-test/IODA/python/gen_bufr2ioda_json.py .
@@ -292,7 +294,7 @@ fi
 
 #3 AMSUA
 # --------------------------------------------------
-# run  bufr2netcdf tool for atms bufr obs
+# run  bufr2netcdf tool for amsua bufr obs
 # --------------------------------------------------
 cp "${PARM_IODACONV}/bufr_1bamua_mapping.yaml" .
 cp "${PARM_IODACONV}/bufr_esamua_mapping.yaml" .
@@ -318,6 +320,16 @@ if [[ -f "$input_file" ]]; then
 else
   echo "Input file $input_file does not exist."
 fi
+
+#6 mhs 
+# --------------------------------------------------
+# run  bufr2netcdf tool for amsua bufr obs
+# --------------------------------------------------
+cp "${PARM_IODACONV}/bufr_1bmhs_mapping.yaml" .
+yaml_1b="bufr_1bmhs_mapping.yaml"
+input_1b="1bmhsbufr"
+output_file="ioda_mhs_{splits/satId}.nc"
+python bufr2ioda_mhs.py $input_1b  $yaml_1b $output_file
 #
 #-----------------------------------------------------------------------
 #
@@ -373,6 +385,7 @@ cp "${RDASAPP_DIR}"/rrfs-test/IODA/offline_duplicate_tagger.py .
 
 # offline domain check & patch
 for ioda_file in ioda*.nc; do
+  #echo 'xyz ioda_file = ', ${ioda_file}
   # skip empty files
   if is_empty_ioda "$ioda_file"; then
     echo "Skipping domain check & patch: $ioda_file is empty"
@@ -385,7 +398,7 @@ for ioda_file in ioda*.nc; do
     export err=$?; err_chk
     base_name=$(basename "$ioda_file" .nc)
     mv  "${base_name}_dc.nc" "${base_name}.nc"
-  elif [[ "${ioda_file}" == *atms* || "${ioda_file}" == *cris* || "${ioda_file}" == *amsua* ]]; then
+  elif [[ "${ioda_file}" == *atms* || "${ioda_file}" == *cris* || "${ioda_file}" == *amsua* || "${ioda_file}" == *mhs* ]]; then
     echo " ${ioda_file} ioda file detected: temporarily skipping offline domain check"
   else
     export pgm="offline_domain_check.py"

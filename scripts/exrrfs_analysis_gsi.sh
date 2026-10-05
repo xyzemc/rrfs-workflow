@@ -382,6 +382,7 @@ else
     anav_type="conv"
   fi
 fi
+ifhyb=.false.
 #
 #-----------------------------------------------------------------------
 #
@@ -586,9 +587,9 @@ if [[ ${gsi_type} == "OBSERVER" || ${anav_type} == "conv" || ${anav_type} == "co
   obs_files_source[${obs_number}]=${obspath_tmp}/${obsfileprefix}.t${HH}z.1bmhs.tm00.bufr_d
   obs_files_target[${obs_number}]=mhsbufr
 
-  obs_number=${#obs_files_source[@]}
-  obs_files_source[${obs_number}]=${obspath_tmp}/${obsfileprefix}.t${HH}z.esmhs.tm00.bufr_d
-  obs_files_target[${obs_number}]=mhsbufrears
+  #obs_number=${#obs_files_source[@]}
+  #obs_files_source[${obs_number}]=${obspath_tmp}/${obsfileprefix}.t${HH}z.esmhs.tm00.bufr_d
+  #obs_files_target[${obs_number}]=mhsbufrears
 
   obs_number=${#obs_files_source[@]}
   obs_files_source[${obs_number}]=${obspath_tmp}/${obsfileprefix}.t${HH}z.atms.tm00.bufr_d
@@ -1012,7 +1013,7 @@ else
   n_iolayouty=$(($IO_LAYOUT_Y))
 fi
 
-. ${FIX_GSI}/gsiparm.anl.sh
+. ${FIX_GSI}/gsiparm.anl.mhs.sh
 cat << EOF > gsiparm.anl
 $gsi_namelist
 EOF

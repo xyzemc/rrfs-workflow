@@ -1,0 +1,139 @@
+gsi_namelist="
+ &SETUP
+   miter=${miter},niter(1)=${niter1},niter(2)=${niter2},
+   write_diag(1)=.true.,write_diag(2)=${write_diag_2},write_diag(3)=.true.,
+   qoption=2,print_obs_para=.true.,diag_fed=${diag_fed},diag_radardbz=${diag_radardbz},
+   if_model_dbz=${if_model_dbz},if_model_fed=${if_model_fed},static_gsi_nopcp_dbz=0.0,if_use_w_vr=.false.,
+   rmesh_dbz=4.0,rmesh_vr=4.0,zmesh_dbz=1000.0,zmesh_vr=1000.0,
+   inflate_dbz_obserr=.true.,missing_to_nopcp=.false.,radar_no_thinning=.true.,
+   gencode=78,factqmin=0.0,factqmax=0.0,
+   iguess=-1,crtm_coeffs_path='./crtm_coeffs/',
+   lread_obs_save=${lread_obs_save},lread_obs_skip=${lread_obs_skip},
+   ${ens_nstarthr:+"ens_nstarthr=$ens_nstarthr,"}
+   oneobtest=.false.,retrieval=.false.,
+   nhr_assimilation=3,l_foto=.false.,
+   use_pbl=.false.,use_prepb_satwnd=$ifsatbufr,
+   newpc4pred=.true.,adp_anglebc=.true.,angord=4,
+   passive_bc=.true.,use_edges=.false.,emiss_bc=.true.,
+   diag_precon=.true.,step_start=1.e-3,
+   l4densvar=.false.,nhr_obsbin=3,
+   use_gfs_nemsio=.false.,use_gfs_ncio=.true.,reset_bad_radbc=.true.,
+   netcdf_diag=${netcdf_diag},binary_diag=${binary_diag},
+   l_obsprvdiag=${l_obsprvdiag},
+   lwrite_peakwt=.true.,
+   innov_use_model_fed=${innov_use_model_fed},
+   lnobalance=.false.,
+ /     
+ &GRIDOPTS
+   fv3_regional=.true.,grid_ratio_fv3_regional=${grid_ratio_fv3},nvege_type=20,
+   fv3_io_layout_y=${n_iolayouty},
+ /
+ &BKGERR
+   vs=${bkgerr_vs},
+   hzscl=${bkgerr_hzscl},
+   bw=0.,fstat=.true.,
+   usenewgfsberror=${usenewgfsberror},
+/
+ &ANBKGERR
+   anisotropic=.false.,
+ /
+ &JCOPTS
+ /
+ &STRONGOPTS
+ /
+ &OBSQC
+   dfact=0.75,dfact1=3.0,noiqc=.false.,c_varqc=0.02,vadfile='prepbufr',
+   vadwnd_l2rw_qc=.true.,
+ /
+ &OBS_INPUT
+   dmesh(1)=120.0,dmesh(2)=60.0,dmesh(3)=30,time_window_max=1.5,time_window_rad=1.0,ext_sonde=.true.,
+ /
+OBS_INPUT::
+!  dfile          dtype       dplat     dsis                 dval    dthin dsfcalc
+   mhsbufr        mhs         metop-b   mhs_metop-b          0.0     2     0
+::
+ &SUPEROB_RADAR
+   del_azimuth=5.,del_elev=.25,del_range=5000.,del_time=.5,elev_angle_max=5.,minnum=50,range_max=100000., l2superob_only=.false.,
+ /
+ &LAG_DATA
+ /
+ &HYBRID_ENSEMBLE
+   l_hyb_ens=${ifhyb},
+   uv_hyb_ens=.true.,
+   q_hyb_ens=${q_hyb_ens},
+   aniso_a_en=.false.,generate_ens=.false.,
+   n_ens=${nummem},
+   l_both_fv3sar_gfs_ens=${l_both_fv3sar_gfs_ens},n_ens_gfs=${nummem_gfs},n_ens_fv3sar=${nummem_fv3sar},
+   weight_ens_gfs=${weight_ens_gfs},weight_ens_fv3sar=${weight_ens_fv3sar},
+   beta_s0=${beta1_inv},s_ens_h=${ens_h},s_ens_v=${ens_v},
+   regional_ensemble_option=${regional_ensemble_option},
+   pseudo_hybens = .false.,
+   grid_ratio_ens = ${grid_ratio_ens},
+   l_ens_in_diff_time=.true.,
+   ensemble_path='',
+   i_en_perts_io=${i_en_perts_io},
+   jcap_ens=574,
+   fv3sar_bg_opt=${fv3lam_bg_type},
+   readin_localization=${readin_localization},
+   parallelization_over_ensmembers=${ens_fast_read},
+   nsclgrp=${nsclgrp},l_timloc_opt=.false.,ngvarloc=${ngvarloc},naensloc=${naensloc},
+   r_ensloccov4tim=${r_ensloccov4tim},r_ensloccov4var=${r_ensloccov4var},r_ensloccov4scl=${r_ensloccov4scl},
+   global_spectral_filter_sd=.false.,assign_vdl_nml=${assign_vdl_nml},vdl_scale=${vdl_scale},
+   vloc_varlist(1,1)='sf ',vloc_varlist(2,1)='w  ',vloc_varlist(3,1)='sf ',vloc_varlist(4,1)='w  ',
+   vloc_varlist(1,2)='vp ',vloc_varlist(2,2)='qr ',vloc_varlist(3,2)='vp ',vloc_varlist(4,2)='qr ',
+   vloc_varlist(1,3)='ps ',vloc_varlist(2,3)='qs ',vloc_varlist(3,3)='ps ',vloc_varlist(4,3)='qs ',
+   vloc_varlist(1,4)='t  ',vloc_varlist(2,4)='qi ',vloc_varlist(3,4)='t  ',vloc_varlist(4,4)='qi ',
+   vloc_varlist(1,5)='q  ',vloc_varlist(2,5)='qg ',vloc_varlist(3,5)='q  ',vloc_varlist(4,5)='qg ',
+   vloc_varlist(1,6)='sst',vloc_varlist(2,6)='ql ',vloc_varlist(3,6)='sst',vloc_varlist(4,6)='ql ',
+   vloc_varlist(1,7)='stl',vloc_varlist(2,7)='dbz',vloc_varlist(3,7)='stl',vloc_varlist(4,7)='dbz',
+   vloc_varlist(1,8)='sti',vloc_varlist(2,8)='aaa',vloc_varlist(3,8)='sti',vloc_varlist(4,8)='aaa',
+ /
+ &RAPIDREFRESH_CLDSURF
+   dfi_radar_latent_heat_time_period=20.0,
+   metar_impact_radius=10.0,
+   metar_impact_radius_lowCloud=4.0,
+   l_gsd_terrain_match_surfTobs=.true.,
+   l_sfcobserror_ramp_t=.true.,
+   l_sfcobserror_ramp_q=.true.,
+   l_PBL_pseudo_SurfobsT=.false.,
+   l_PBL_pseudo_SurfobsQ=.false.,
+   l_PBL_pseudo_SurfobsUV=.false.,
+   pblH_ration=0.4,
+   pps_press_incr=40.0,
+   l_gsd_limit_ocean_q=.true.,
+   l_pw_hgt_adjust=.true.,
+   l_limit_pw_innov=.true.,
+   max_innov_pct=0.1,
+   l_cleanSnow_WarmTs=.true.,
+   r_cleanSnow_WarmTs_threshold=5.0,
+   l_conserve_thetaV=.true.,
+   i_conserve_thetaV_iternum=3,
+   l_gsd_soilTQ_nudge=${ifsoilnudge},
+   l_cld_bld=.true.,
+   l_numconc=.true.,
+   l_closeobs=.true.,
+   cld_bld_hgt=1200.0,
+   build_cloud_frac_p=0.50,
+   clear_cloud_frac_p=0.10,
+   iclean_hydro_withRef_allcol=1,
+   i_use_2mQ4B=${i_use_2mQ4B},
+   i_use_2mT4B=${i_use_2mT4B},
+   i_gsdcldanal_type=0,
+   i_gsdsfc_uselist=1,
+   i_lightpcp=1,
+   i_sfct_gross=1,
+   !i_coastline=3,
+   i_gsdqc=2,
+ /
+ &CHEM
+  laeroana_fv3smoke=${laeroana_fv3smoke},
+  berror_fv3_cmaq_regional=${berror_fv3_cmaq_regional},
+ /
+ &NST
+ /
+ &SINGLEOB_TEST
+   maginnov=1.0,magoberr=0.8,oneob_type='t',
+   oblat=38.,oblon=279.,obpres=500.,obdattim=2020040500,
+   obhourset=0.,
+ /
+"

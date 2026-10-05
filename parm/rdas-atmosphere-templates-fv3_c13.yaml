@@ -11,7 +11,7 @@ app_path_observation_chronicle: rdas/observation_chronicle/atmosphere
 
 # Places where we deviate from the generic file name of a yaml
 # ------------------------------------------------------------
-#final_increment_file: atmosphere_final_increment
+final_increment_file: atmosphere_final_increment
 output_file: atmosphere_output
 output_ensemble_increments_file: atmosphere_output_ensemble_increments_gaussian
 model_file: atmosphere_model_pseudo
@@ -23,7 +23,7 @@ vader_custom_cookbook_file: atmosphere_vader_custom_cookbook
 
 # Global analysis things
 # ----------------------
-window_length: PT6H
+window_length: PT3H
 bound_to_include: begin
 minimizer: DRPCG
 final_diagnostics_departures: oman
@@ -172,8 +172,8 @@ atmosphere_gsibec_path: DATA/berror
 atmosphere_number_ensemble_members: 30
 atmosphere_layout_gsib_x: 14
 atmosphere_layout_gsib_y: 14
-gsibec_lats: 127
-gsibec_lons: 211
+gsibec_lats: 253 #127
+gsibec_lons: 421 #211
 lat_start: -14.726005
 lat_end: 14.726005
 lon_start: -25.076254
@@ -212,63 +212,63 @@ mesonet_gsd_sfcobs_provider: gsd_sfcobs_provider.txt
 
 observations:
 # Upper-air conventional
-- adpupa_airTemperature_120
-- adpupa_airTemperature_132
-- adpupa_specificHumidity_120
-- adpupa_specificHumidity_132
-- adpupa_stationPressure_120
-- adpupa_winds_220
-- adpupa_winds_232
+#- adpupa_airTemperature_120
+#- adpupa_airTemperature_132
+#- adpupa_specificHumidity_120
+#- adpupa_specificHumidity_132
+#- adpupa_stationPressure_120
+#- adpupa_winds_220
+#- adpupa_winds_232
 
-- aircar_airTemperature_133
-- aircar_specificHumidity_133
-- aircar_winds_233
+#- aircar_airTemperature_133
+#- aircar_specificHumidity_133
+#- aircar_winds_233
 
-- aircft_airTemperature_130
-- aircft_airTemperature_131
-- aircft_airTemperature_134
-- aircft_airTemperature_135
-- aircft_specificHumidity_134
-- aircft_winds_230
-- aircft_winds_231
-- aircft_winds_234
-- aircft_winds_235
-
-- proflr_winds_227
+#- aircft_airTemperature_130
+#- aircft_airTemperature_131
+#- aircft_airTemperature_134
+#- aircft_airTemperature_135
+#- aircft_specificHumidity_134
+#- aircft_winds_230
+#- aircft_winds_231
+#- aircft_winds_234
+#- aircft_winds_235
+#
+#- proflr_winds_227
 #- vadwnd_winds_224
-- rassda_airTemperature_126
+#- rassda_airTemperature_126
 
-# Surface conventional
-- adpsfc_airTemperature_181
-- adpsfc_airTemperature_183
-- adpsfc_airTemperature_187
-- adpsfc_specificHumidity_181
-- adpsfc_specificHumidity_183
-- adpsfc_specificHumidity_187
-- adpsfc_stationPressure_181
-- adpsfc_stationPressure_187
-- adpsfc_winds_281
-- adpsfc_winds_284
-- adpsfc_winds_287
-- msonet_airTemperature_188
-- msonet_specificHumidity_188
-- msonet_stationPressure_188
-- msonet_winds_288
+## Surface conventional
+#- adpsfc_airTemperature_181
+#- adpsfc_airTemperature_183
+#- adpsfc_airTemperature_187
+#- adpsfc_specificHumidity_181
+#- adpsfc_specificHumidity_183
+#- adpsfc_specificHumidity_187
+#- adpsfc_stationPressure_181
+#- adpsfc_stationPressure_187
+#- adpsfc_winds_281
+#- adpsfc_winds_284
+#- adpsfc_winds_287
+#- msonet_airTemperature_188
+#- msonet_specificHumidity_188
+#- msonet_stationPressure_188
+#- msonet_winds_288
 
-- sfcshp_airTemperature_180
-- sfcshp_airTemperature_182
-- sfcshp_airTemperature_183
-- sfcshp_specificHumidity_180
-- sfcshp_specificHumidity_182
-- sfcshp_specificHumidity_183
-- sfcshp_stationPressure_180
-- sfcshp_stationPressure_182
-- sfcshp_winds_280
-- sfcshp_winds_282
-- sfcshp_winds_284
+#- sfcshp_airTemperature_180
+#- sfcshp_airTemperature_182
+#- sfcshp_airTemperature_183
+#- sfcshp_specificHumidity_180
+#- sfcshp_specificHumidity_182
+#- sfcshp_specificHumidity_183
+#- sfcshp_stationPressure_180
+#- sfcshp_stationPressure_182
+#- sfcshp_winds_280
+#- sfcshp_winds_282
+#- sfcshp_winds_284
 
 # Remote
-- nexrad_radialVelocity_999
+#- nexrad_radialVelocity_999
 #- gnss_zenithTotalDelay
 
 # Meteosat / EUMETSAT satelliteIdentifier 56
@@ -285,14 +285,14 @@ observations:
 #- satwnd_winds_252_174
 
 # GOES-16 satelliteIdentifier 270
-- satwnd_winds_245_270
-- satwnd_winds_246_270
-- satwnd_winds_247_270
+#- satwnd_winds_245_270
+#- satwnd_winds_246_270
+#- satwnd_winds_247_270
 
 # GOES-18 satelliteIdentifier 272
-- satwnd_winds_245_272
-- satwnd_winds_246_272
-- satwnd_winds_247_272
+#- satwnd_winds_245_272
+#- satwnd_winds_246_272
+#- satwnd_winds_247_272
 
 # GOES-19 satelliteIdentifier 273
 #- satwnd_winds_245_273
@@ -310,6 +310,9 @@ observations:
 #- atms_n21
 #- cris-fsr_n20
 #- cris-fsr_n21
+#- mhs_n19
+- mhs_metop-b
+#- metop_metop-c
 
 # Analysis iuse flag (default: passivate)
 # Upper-air conventional
